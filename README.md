@@ -178,5 +178,5 @@ For larger extensions — HITL interrupts, MCP Server, cloud deployment, advance
 ---
 
 <div align="center">
-<sub>MIT License · Built for academic research · PRs welcome</sub>
+<sub>Apache 2.0 License · Built for academic research · PRs welcome</sub>
 </div>

@@ -177,5 +177,5 @@ AcadVex/
 ---
 
 <div align="center">
-<sub>MIT License · 毕业研究项目 · 欢迎 PR</sub>
+<sub>Apache 2.0 License · 毕业研究项目 · 欢迎 PR</sub>
 </div>
