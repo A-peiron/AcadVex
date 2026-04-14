@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables (NEVER commit real keys)
+.env
+*.env.local
+
+# Model weights (too large for git)
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Data files (large binaries)
+*.npz
+*.npy
+*.bin
+*.pkl
+*.pickle
+data/embeddings/
+data/graph_stats/
+
+# Logs
+logs/
+*.log
+
+# Langfuse / Docker volumes
+langfuse_data/
+postgres_data/
+
+# ChromaDB local store
+chroma_db/
+*.sqlite3
+!memory/*.sqlite3
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+frontend/.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Personal dev notes (not for public repo)
+DEVELOPMENT_PLAN.md
