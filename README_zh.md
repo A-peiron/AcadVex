@@ -27,7 +27,7 @@
 
 AcadVex 将预训练的 **FPGCL** 图神经网络包装进对话式 AI Agent。用自然语言描述你的研究需求——Agent 自动识别意图、路由到对应 Skill、调用 GNN 推理或 RAG 检索，以流式文字答案和交互式合作网络图呈现结果。
 
-> 模型训练代码位于配套仓库 **[FPGCL](https://github.com/your-username/FPGCL)**。
+> 模型训练代码位于配套仓库 **[FPGCL](https://github.com/A-peiron/FPGCL)**。
 
 ---
 

@@ -28,7 +28,7 @@
 
 AcadVex wraps a pretrained **FPGCL** graph neural network inside a conversational AI Agent. Describe your research interest in plain language — the agent routes your intent to the right Skill, invokes GNN inference or RAG retrieval, and streams back explainable answers alongside an interactive collaboration graph.
 
-> Model training code lives in the companion **[FPGCL](https://github.com/your-username/FPGCL)** repository.
+> Model training code lives in the companion **[FPGCL](https://github.com/A-peiron/FPGCL)** repository.
 
 ---
 
