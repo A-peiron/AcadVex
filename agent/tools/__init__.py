@@ -15,6 +15,8 @@ from agent.tools.collab_tools import (
     get_network_stats,
     analyze_community,
 )
+from agent.tools.rag_tools import search_knowledge
+
 
 
 # ── 工具函数注册表（名称 → 函数）────────────────────────────────────────
@@ -23,6 +25,7 @@ TOOL_REGISTRY = {
     "search_author":         search_author,
     "get_network_stats":     get_network_stats,
     "analyze_community":     analyze_community,
+    "search_knowledge":      search_knowledge,
 }
 
 
@@ -105,6 +108,26 @@ TOOL_SCHEMAS = [
                     }
                 },
                 "required": ["community_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_knowledge",
+            "description": (
+                "在 AcadVex 知识库中检索背景知识，包括系统介绍、模型原理、数据集说明、"
+                "社群概况等。当用户询问系统架构、模型细节或领域背景知识时使用。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "检索关键词，如 'FPGCL 模型原理' 或 '数据挖掘社群'"
+                    }
+                },
+                "required": ["query"],
             },
         },
     },
