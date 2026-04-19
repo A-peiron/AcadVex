@@ -1,0 +1,105 @@
+[
+  {
+    "id": "overview",
+    "text": "AcadVex 是基于 FPGCL 模型的学术合作网络智能分析平台。数据集来自 DBLP，包含 4057 位作者、14328 篇论文、20 个学术会议。系统使用图神经网络（GNN）学习作者 embedding，通过点积计算合作潜力分数。",
+    "metadata": {
+      "type": "overview"
+    }
+  },
+  {
+    "id": "model_fpgcl",
+    "text": "FPGCL（Feature-enhanced Parallel Graph Contrastive Learning）是本系统的核心模型。它融合了 HAEGNN（异构注意力图神经网络）和 IHGCL（意图引导异构图对比学习）两个组件。HAEGNN 包含 SCL（语义卷积层）和 CAL（内容注意力层），并行提取结构特征和语义特征。IHGCL 通过对比学习优化 embedding 质量。模型在 DBLP 数据集上的链接预测 Recall@20 达到 0.5835，社群挖掘 NMI 达到 0.4125。",
+    "metadata": {
+      "type": "model"
+    }
+  },
+  {
+    "id": "collab_prediction",
+    "text": "合作潜力预测通过计算两位作者 embedding 向量的点积得到分数。分数越高表示两位作者合作的可能性越大。点积能捕捉 embedding 空间中两个向量的方向相似性，经过 FPGCL 训练后，合作过的作者 embedding 在空间中更接近。预测时不需要重新运行模型，直接读取预计算的 embedding 文件进行点积运算。",
+    "metadata": {
+      "type": "feature"
+    }
+  },
+  {
+    "id": "community_0",
+    "text": "Database 社群（ID=0）共有 1197 位作者，是 DBLP 数据集中的四大研究社群之一。该社群核心成员包括：Hongjun Lu, Jeffrey Xu Yu, Michael J. Carey, H. V. Jagadish, Yufei Tao等。社群通过 K-Means 聚类作者 embedding 得到，同社群作者在研究方向和合作网络上具有较高相似性。",
+    "metadata": {
+      "type": "community",
+      "community_id": 0,
+      "name": "Database"
+    }
+  },
+  {
+    "id": "community_1",
+    "text": "Data Mining 社群（ID=1）共有 745 位作者，是 DBLP 数据集中的四大研究社群之一。该社群核心成员包括：Jiawei Han, Hans-Peter Kriegel, Christos Faloutsos, Wei Wang, Haixun Wang等。社群通过 K-Means 聚类作者 embedding 得到，同社群作者在研究方向和合作网络上具有较高相似性。",
+    "metadata": {
+      "type": "community",
+      "community_id": 1,
+      "name": "Data Mining"
+    }
+  },
+  {
+    "id": "community_2",
+    "text": "Artificial Intelligence 社群（ID=2）共有 1109 位作者，是 DBLP 数据集中的四大研究社群之一。该社群核心成员包括：Qiang Yang, Changshui Zhang, Tuomas Sandholm, Fei Wang, Craig Boutilier等。社群通过 K-Means 聚类作者 embedding 得到，同社群作者在研究方向和合作网络上具有较高相似性。",
+    "metadata": {
+      "type": "community",
+      "community_id": 2,
+      "name": "Artificial Intelligence"
+    }
+  },
+  {
+    "id": "community_3",
+    "text": "Information Retrieval 社群（ID=3）共有 1006 位作者，是 DBLP 数据集中的四大研究社群之一。该社群核心成员包括：Wei-Ying Ma, Yong Yu, Benyu Zhang, W. Bruce Croft, Gui-Rong Xue等。社群通过 K-Means 聚类作者 embedding 得到，同社群作者在研究方向和合作网络上具有较高相似性。",
+    "metadata": {
+      "type": "community",
+      "community_id": 3,
+      "name": "Information Retrieval"
+    }
+  },
+  {
+    "id": "tech_stack",
+    "text": "AcadVex 系统架构分为五层：模型层使用预训练的 FPGCL 模型提供 embedding；推理层通过 model/inference.py 进行点积打分和元数据查询；Agent 层使用手写 ReAct 循环（后迁移至 LangGraph）实现工具调用和多轮推理；API 层使用 FastAPI 提供 REST 接口，支持 SSE 流式输出；RAG 层使用 ChromaDB + BM25 + CrossEncoder 三阶段检索增强生成。",
+    "metadata": {
+      "type": "architecture"
+    }
+  },
+  {
+    "id": "dataset_dblp",
+    "text": "DBLP 数据集包含计算机科学领域的学术合作网络数据。本系统使用的子集共有 4057 位作者和 14328 篇论文，涵盖 20 个顶级学术会议，分为四个研究社群：Database（数据库）、Data Mining（数据挖掘）、Artificial Intelligence（人工智能）、Information Retrieval（信息检索）。作者的真实姓名来自 MAGNN 原始数据集。",
+    "metadata": {
+      "type": "dataset"
+    }
+  },
+  {
+    "id": "top_authors_community_2",
+    "text": "Artificial Intelligence 社群中论文数量最多的作者包括：Qiang Yang（67篇论文，ID=324）, Raymond J. Mooney（35篇论文，ID=326）, Tuomas Sandholm（34篇论文，ID=73）。",
+    "metadata": {
+      "type": "top_authors",
+      "community_id": 2
+    }
+  },
+  {
+    "id": "top_authors_community_3",
+    "text": "Information Retrieval 社群中论文数量最多的作者包括：W. Bruce Croft（72篇论文，ID=414）, Wei-Ying Ma（51篇论文，ID=1560）, ChengXiang Zhai（40篇论文，ID=1209）。",
+    "metadata": {
+      "type": "top_authors",
+      "community_id": 3
+    }
+  },
+  {
+    "id": "top_authors_community_1",
+    "text": "Data Mining 社群中论文数量最多的作者包括：Jiawei Han（134篇论文，ID=1015）, Christos Faloutsos（102篇论文，ID=2300）, Hans-Peter Kriegel（82篇论文，ID=1475）。",
+    "metadata": {
+      "type": "top_authors",
+      "community_id": 1
+    }
+  },
+  {
+    "id": "top_authors_community_0",
+    "text": "Database 社群中论文数量最多的作者包括：H. V. Jagadish（85篇论文，ID=1013）, Surajit Chaudhuri（78篇论文，ID=2235）, Clement T. Yu（59篇论文，ID=1493）。",
+    "metadata": {
+      "type": "top_authors",
+      "community_id": 0
+    }
+  }
+]
