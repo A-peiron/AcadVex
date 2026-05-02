@@ -99,7 +99,7 @@ def _load_author_papers() -> dict:
     if _author_papers is None:
         mapping: dict[int, list[int]] = {}
         for fname in ["train.txt", "test.txt"]:
-            fpath = _PROJECT_ROOT.parent / "data" / "processed" / _dataset / fname
+            fpath = _PROJECT_ROOT / "data" / "processed" / _dataset / fname
             if not fpath.exists():
                 continue
             with open(fpath, encoding="utf-8") as f:

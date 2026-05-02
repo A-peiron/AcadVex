@@ -32,6 +32,7 @@ env/
 *.pickle
 data/embeddings/
 data/graph_stats/
+data/processed/
 
 # Logs
 logs/
