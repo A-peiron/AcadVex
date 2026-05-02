@@ -1,0 +1,145 @@
+/* ── Tailwind CSS 指令（必须放在文件最顶部）────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── shadcn/ui CSS 变量：亮色主题（light mode）──────────────────────────────
+   这些变量被 tailwind.config.js 中的 hsl(var(--xxx)) 引用。
+   调色板：紫色主色调（与 AcadVex 现有 --accent: #aa3bff 保持一致）
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background:   0 0% 100%;          /* 白色背景 */
+    --foreground:   240 10% 3.9%;       /* 深色文字 */
+
+    --card:         0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover:      0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary:      270 60% 58%;        /* 紫色主色 #aa3bff 近似 */
+    --primary-foreground: 0 0% 98%;     /* 白色文字（在主色上）*/
+
+    --secondary:    240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted:        240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent:       240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive:  0 84.2% 60.2%;      /* 红色（错误/删除）*/
+    --destructive-foreground: 0 0% 98%;
+
+    --border:       240 5.9% 90%;
+    --input:        240 5.9% 90%;
+    --ring:         270 60% 58%;        /* 焦点环颜色 = 主色 */
+
+    --radius: 0.5rem;                   /* 圆角基准值 */
+  }
+
+  /* 暗黑模式：类名 .dark 切换 ─────────────────────────────────────────────── */
+  .dark {
+    --background:   222 14% 10%;        /* #16171d 近似 */
+    --foreground:   210 40% 98%;
+
+    --card:         222 14% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --popover:      222 14% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary:      270 55% 70%;        /* 暗色下稍亮紫色 */
+    --primary-foreground: 222 14% 10%;
+
+    --secondary:    217 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted:        217 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent:       217 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive:  0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border:       217 32.6% 17.5%;
+    --input:        217 32.6% 17.5%;
+    --ring:         270 55% 70%;
+  }
+}
+
+/* ── 全局基础样式（保留原有设计，仅补充 Tailwind 兼容性）─────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font: 18px/145% system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 0.18px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2 {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  h1 { font-size: 56px; letter-spacing: -1.68px; margin: 32px 0; }
+  h2 { font-size: 24px; line-height: 118%; letter-spacing: -0.24px; margin: 0 0 8px; }
+  p  { margin: 0; }
+
+  @media (max-width: 1024px) {
+    body { font-size: 16px; }
+    h1   { font-size: 36px; margin: 20px 0; }
+    h2   { font-size: 20px; }
+  }
+}
+
+/* ── 保留原有 CSS 自定义属性（兼容旧代码）───────────────────────────────────
+   旧的 --accent、--border 等变量仍然可用，避免旧组件出错
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --text:         #6b6375;
+  --text-h:       #08060d;
+  --bg:           #fff;
+  --code-bg:      #f4f3ec;
+  --legacy-accent:        #aa3bff;
+  --legacy-accent-bg:     rgba(170, 59, 255, 0.1);
+  --legacy-accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg:    rgba(244, 243, 236, 0.5);
+  --shadow:       rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans:    system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono:    ui-monospace, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text:         #9ca3af;
+    --text-h:       #f3f4f6;
+    --bg:           #16171d;
+    --code-bg:      #1f2028;
+    --legacy-accent:        #c084fc;
+    --legacy-accent-bg:     rgba(192, 132, 252, 0.15);
+    --legacy-accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg:    rgba(47, 48, 58, 0.5);
+    --shadow:       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+  border-radius: 4px;
+  color: var(--text-h);
+}
+

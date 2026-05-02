@@ -1,0 +1,70 @@
+{
+  "0": {
+    "name": "Database",
+    "top_keywords": [
+      {
+        "word": "query optimization",
+        "score": 0.638764
+      },
+      {
+        "word": "transaction",
+        "score": 0.638764
+      },
+      {
+        "word": "indexing",
+        "score": 0.638764
+      }
+    ]
+  },
+  "1": {
+    "name": "Data Mining",
+    "top_keywords": [
+      {
+        "word": "clustering",
+        "score": 0.638764
+      },
+      {
+        "word": "classification",
+        "score": 0.638764
+      },
+      {
+        "word": "pattern mining",
+        "score": 0.638764
+      }
+    ]
+  },
+  "2": {
+    "name": "Artificial Intelligence",
+    "top_keywords": [
+      {
+        "word": "machine learning",
+        "score": 0.638764
+      },
+      {
+        "word": "neural network",
+        "score": 0.638764
+      },
+      {
+        "word": "gnn",
+        "score": 0.638764
+      }
+    ]
+  },
+  "3": {
+    "name": "Information Retrieval",
+    "top_keywords": [
+      {
+        "word": "ranking",
+        "score": 0.638764
+      },
+      {
+        "word": "recommendation",
+        "score": 0.638764
+      },
+      {
+        "word": "search",
+        "score": 0.638764
+      }
+    ]
+  }
+}

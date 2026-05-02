@@ -44,7 +44,12 @@ postgres_data/
 # ChromaDB local store
 chroma_db/
 *.sqlite3
-!memory/*.sqlite3
+
+# Vector stores (large binaries, rebuild with scripts/)
+data/vector_stores/
+
+# Session memory (runtime state, not source)
+memory/checkpoints.sqlite
 
 # Frontend build
 frontend/dist/
@@ -60,5 +65,9 @@ Thumbs.db
 .idea/
 *.swp
 
+# Test cache
+.pytest_cache/
+
 # Personal dev notes (not for public repo)
 DEVELOPMENT_PLAN.md
+测试报告*.md

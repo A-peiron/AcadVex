@@ -1,28 +1,37 @@
 """
-两阶段检索 + RRF 融合
+三阶段检索：向量 + BM25 + RRF 融合 + CrossEncoder 精排
   Stage 1a: ChromaDB 向量检索（语义相似）
   Stage 1b: BM25 关键词检索（精确匹配）
   Stage 2:  Reciprocal Rank Fusion 排序
+  Stage 3:  CrossEncoder 精排（query-document 联合编码，重新打分）
 """
+
+import os
+# 强制离线模式：必须在导入 sentence_transformers 之前设置
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 import pickle
 from typing import Any
 import chromadb
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 # 索引配置
 CHROMA_DIR = "rag/chroma_db"
 BM25_PATH  = "rag/bm25_index.pkl"
 MODEL_NAME = "BAAI/bge-small-zh-v1.5"
 COLLECTION = "acadvex_kb"
+RERANKER_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # 全局变量（懒加载）
 _model:      SentenceTransformer | None = None
 _collection: Any = None
 _bm25_data:  dict | None = None
+_cross_encoder: CrossEncoder | None = None
 
 # 供外部调用的检索接口，以及内部使用的工具函数都在这里实现
 def _load():
-    global _model, _collection, _bm25_data
+    global _model, _collection, _bm25_data, _cross_encoder
     if _model is None:
         _model = SentenceTransformer(MODEL_NAME)
     if _collection is None:
@@ -31,6 +40,9 @@ def _load():
     if _bm25_data is None:
         with open(BM25_PATH, "rb") as f:
             _bm25_data = pickle.load(f)
+    if _cross_encoder is None:
+        _cross_encoder = CrossEncoder(RERANKER_NAME)
+
 
 # 下面是检索实现：向量检索、BM25 检索、RRF 融合，以及主接口 retrieve()
 def _tokenize(text: str) -> list[str]:
@@ -84,8 +96,20 @@ def _rrf_fusion(results_a: list[dict], results_b: list[dict], k: int = 60) -> li
     return [doc_map[did] for did in sorted(scores, key=scores.__getitem__, reverse=True)]
 
 
+def _rerank(query: str, candidates: list[dict]) -> list[dict]:
+    """Stage 3: CrossEncoder 对 RRF 候选重新打分并排序"""
+    if not candidates:
+        return candidates
+    pairs = [(query, doc["text"]) for doc in candidates]
+    scores = _cross_encoder.predict(pairs)
+    ranked = sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True)
+    return [doc for doc, _ in ranked]
+
+
 def retrieve(query: str, top_k: int = 3) -> list[dict]:
-    """主接口：向量 + BM25 → RRF → top_k 结果，每条含 {id, text, metadata}"""
-    vec  = _vector_search(query, top_k=top_k * 2)
-    bm25 = _bm25_search(query,  top_k=top_k * 2)
-    return _rrf_fusion(vec, bm25)[:top_k]
+    """主接口：向量 + BM25 → RRF → CrossEncoder 精排 → top_k 结果"""
+    vec      = _vector_search(query, top_k=top_k * 2)
+    bm25_res = _bm25_search(query,  top_k=top_k * 2)
+    fused    = _rrf_fusion(vec, bm25_res)
+    return _rerank(query, fused)[:top_k]
+
