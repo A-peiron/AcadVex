@@ -6,7 +6,7 @@ from api.routes.graph import router as graph_router
 from api.routes.recommendations import router as recommendations_router
 from api.middleware.security import SecurityMiddleware
 from contextlib import asynccontextmanager
-from agent.loop import _langfuse
+from agent.graph import _langfuse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from api.middleware.rate_limit import limiter

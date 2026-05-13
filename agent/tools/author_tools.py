@@ -30,6 +30,7 @@ from agent.utils.logger import logger
 _DATA_ROOT = Path(__file__).parent.parent.parent / "data"
 _PRECOMPUTED = _DATA_ROOT / "precomputed"
 _GRAPH_STATS = _DATA_ROOT / "graph_stats" / "dblp"
+_PROCESSED   = _DATA_ROOT / "processed" / "dblp"
 
 
 # ── 懒加载辅助：避免启动时全量加载 ─────────────────────────────────────────
@@ -51,6 +52,25 @@ def _load_edges() -> set[tuple[int, int]]:
         u, v = int(e["source"]), int(e["target"])
         edge_set.add((min(u, v), max(u, v)))   # 无向图：统一用较小值做 key
     return edge_set
+
+
+@lru_cache(maxsize=1)
+def _load_author_paper_map() -> dict:
+    """从 train.txt / test.txt 构建 author_id → [paper_ids] 映射（只读一次）。"""
+    mapping: dict[int, list[int]] = {}
+    for fname in ["train.txt", "test.txt"]:
+        fpath = _PROCESSED / fname
+        if not fpath.exists():
+            continue
+        with open(fpath, encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split()
+                if not parts:
+                    continue
+                author_id = int(parts[0])
+                paper_ids = [int(p) for p in parts[1:]]
+                mapping.setdefault(author_id, []).extend(paper_ids)
+    return mapping
 
 
 def _has_edge(a: int, b: int) -> bool:
@@ -305,20 +325,26 @@ def get_author_papers(author_id: int) -> str:
             return f"错误：作者 ID {author_id} 不存在"
 
         info = author_meta[key]
-        paper_count = info.get("paper_count", 0)
-        all_papers = list(paper_meta.values())[:paper_count] if paper_count else []
+        author_paper_map = _load_author_paper_map()
+        paper_ids = author_paper_map.get(author_id, [])
+        paper_count = len(paper_ids)
 
-        if not all_papers:
+        if paper_count == 0:
             return (
                 f"作者 {info['name']}（ID={author_id}）\n"
                 f"  研究方向：{info['research_area']}\n"
-                f"  发表论文：{paper_count} 篇\n"
-                f"  （暂无论文详情，待数据集完整 author-paper 映射后支持）"
+                f"  暂无论文记录。"
             )
 
+        papers = []
+        for pid in paper_ids:
+            p = paper_meta.get(str(pid))
+            if p:
+                papers.append({"id": pid, "title": p.get("title", "未知标题"), "venue": p.get("venue", "未知")})
+
         lines = [f"作者 {info['name']}（ID={author_id}）共发表 {paper_count} 篇论文：\n"]
-        for i, p in enumerate(all_papers[:10], 1):
-            lines.append(f"  {i}. [{p.get('venue', '未知')}] {p.get('title', '未知标题')}")
+        for i, p in enumerate(papers[:10], 1):
+            lines.append(f"  {i}. [{p['venue']}] {p['title']}")
         if paper_count > 10:
             lines.append(f"  ... 共 {paper_count} 篇（仅显示前 10 篇）")
         return "\n".join(lines)

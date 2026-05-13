@@ -113,8 +113,10 @@ def find_collab_path(author_a_id: int, author_b_id: int) -> str:
 
 def suggest_team(query: str, size: int = 3) -> str:
     try:
+        import torch
         data = load_embeddings()
         author_meta = data["author_meta"]
+        author_emb = data["author_emb"]
 
         query_lower = query.lower().replace("，", " ").replace(",", " ")
         query_tokens = set(query_lower.split())
@@ -131,6 +133,7 @@ def suggest_team(query: str, size: int = 3) -> str:
                     score += 1
             return score
 
+        # 第一阶段：关键词过滤候选池
         candidates = []
         for aid_str, ainfo in author_meta.items():
             kw_set = set(kw.lower() for kw in ainfo.get("keywords", []))
@@ -144,19 +147,30 @@ def suggest_team(query: str, size: int = 3) -> str:
                 f"请尝试更通用的英文关键词，如 'machine learning'、'data mining'、'neural network' 等。"
             )
 
-        candidates.sort(key=lambda x: x["match_count"], reverse=True)
+        # 第二阶段：FPGCL 嵌入 + 关键词覆盖综合评分
+        # 用候选池 top-20 的嵌入均值作为查询代理向量
+        top20_ids = [c["id"] for c in sorted(candidates, key=lambda x: x["match_count"], reverse=True)[:20]]
+        query_vec = author_emb[top20_ids].mean(dim=0)  # [d]
+
+        for c in candidates:
+            emb = author_emb[c["id"]]
+            sim = torch.cosine_similarity(emb.unsqueeze(0), query_vec.unsqueeze(0)).item()
+            c["fpgcl_sim"] = sim
+
         team: list[dict] = []
         covered_keywords: set[str] = set()
 
         for _ in range(size):
             best_candidate = None
-            best_new_kw = -1
+            best_score = -1.0
+            total_kw = max(len(c["keywords"]) for c in candidates) or 1
             for c in candidates:
                 if any(m["id"] == c["id"] for m in team):
                     continue
-                new_kw = len(c["keywords"] - covered_keywords)
-                if new_kw > best_new_kw:
-                    best_new_kw = new_kw
+                new_kw_ratio = len(c["keywords"] - covered_keywords) / total_kw
+                score = c["fpgcl_sim"] * 0.6 + new_kw_ratio * 0.4
+                if score > best_score:
+                    best_score = score
                     best_candidate = c
             if best_candidate is None:
                 break
@@ -171,7 +185,7 @@ def suggest_team(query: str, size: int = 3) -> str:
             info = member["info"]
             lines.append(
                 f"  {rank}. {info['name']}（ID={member['id']}）\n"
-                f"     方向：{info['research_area']}  |  论文：{info['paper_count']} 篇\n"
+                f"     方向：{info['research_area']}  |  论文：{info['paper_count']} 篇  |  FPGCL相似度：{member['fpgcl_sim']:.3f}\n"
                 f"     关键词：{', '.join(list(member['keywords'])[:5])}"
             )
         lines.append(f"\n  团队共覆盖 {len(covered_keywords)} 个研究关键词")

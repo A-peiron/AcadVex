@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 import chromadb
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 
 # 将项目根目录加入 sys.path
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -32,12 +32,14 @@ router = APIRouter()
 # 路径配置
 _VECTOR_STORE_DIR = _PROJECT_ROOT / "data" / "vector_stores" / "author_vectordb"
 _BM25_PATH = _PROJECT_ROOT / "data" / "vector_stores" / "author_bm25.pkl"
+_RERANKER_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # 惰性加载缓存
 _chroma_client: Optional[chromadb.PersistentClient] = None
 _chroma_collection = None
 _embedding_model: Optional[SentenceTransformer] = None
 _bm25_data: Optional[dict] = None
+_cross_encoder: Optional[CrossEncoder] = None
 
 
 def _tokenize(text: str) -> list[str]:
@@ -91,6 +93,17 @@ def _load_bm25():
     with open(_BM25_PATH, "rb") as f:
         _bm25_data = pickle.load(f)
     return _bm25_data
+
+
+def _load_cross_encoder() -> CrossEncoder:
+    """加载 CrossEncoder 重排序模型（懒加载，首次调用约10秒）"""
+    global _cross_encoder
+    if _cross_encoder is None:
+        import os
+        os.environ["HF_HUB_OFFLINE"] = "1"
+        os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        _cross_encoder = CrossEncoder(_RERANKER_NAME)
+    return _cross_encoder
 
 
 def _rrf_fusion(chroma_results: list, bm25_results: list, k: int = 60) -> list:
@@ -198,18 +211,47 @@ def recommend_by_keywords(req: KeywordRecommendationRequest):
     # ── 3. RRF 融合 ─────────────────────────────────────────────────────
     rrf_results = _rrf_fusion(chroma_candidates, bm25_candidates, k=60)
 
-    # ── 4. 构建返回结果 ─────────────────────────────────────────────────
+    # ── 4. CrossEncoder 重排序（可选）────────────────────────────────────
     metadatas = bm25_data["metadatas"]
     id_to_metadata = {int(m["author_id"]): m for m in metadatas}
 
+    if req.use_rerank:
+        # 取 top_k*3 候选构建重排序输入
+        rerank_pool = rrf_results[:req.top_k * 3]
+        pairs = []
+        valid_ids = []
+        for author_id, _ in rerank_pool:
+            meta = id_to_metadata.get(author_id)
+            if meta:
+                doc_text = (
+                    f"Author: {meta.get('name', '')}. "
+                    f"Research area: {meta.get('research_area', '')}. "
+                    f"Keywords: {meta.get('keywords', '')}. "
+                    f"Papers: {meta.get('paper_count', 0)}. "
+                    f"Degree: {meta.get('degree', 0)}."
+                )
+                pairs.append((query_text, doc_text))
+                valid_ids.append(author_id)
+
+        if pairs:
+            ce = _load_cross_encoder()
+            ce_scores = ce.predict(pairs)
+            reranked = sorted(zip(valid_ids, ce_scores), key=lambda x: x[1], reverse=True)
+            final_ids_scores = [(aid, float(s)) for aid, s in reranked[:req.top_k]]
+        else:
+            final_ids_scores = [(aid, float(s)) for aid, s in rrf_results[:req.top_k]]
+    else:
+        final_ids_scores = [(aid, float(s)) for aid, s in rrf_results[:req.top_k]]
+
+    # ── 5. 构建返回结果 ─────────────────────────────────────────────────
     results = []
-    for author_id, rrf_score in rrf_results[:req.top_k]:
+    for author_id, score in final_ids_scores:
         metadata = id_to_metadata.get(author_id)
         if metadata:
             results.append({
                 "id": author_id,
                 "name": metadata["name"],
-                "score": round(float(rrf_score), 6),
+                "score": round(score, 6),
                 "community_id": metadata["community_id"],
                 "research_area": metadata["research_area"],
                 "keywords": metadata["keywords"].split(", ") if metadata["keywords"] else [],

@@ -10,9 +10,13 @@ SKILL = {
 - search_author：按姓名关键词搜索作者，获取其 ID
 
 ## 行为准则
-1. 用户提供 ID 时，直接调用 predict_collaboration。
+1. **绝对不要直接问用户 ID**，ID 是系统内部索引，用户不知道。
 2. 用户提供姓名时，先调用 search_author 获取 ID，再预测。
-3. ID 范围 0–4056，超出范围直接说明无法查询。
+3. 用户只描述研究方向（如"我是做图神经网络的"）而未提供姓名时：
+   - 用关键词 search_author 找到相关学者
+   - 对找到的学者之间用 predict_collaboration 计算合作潜力
+   - 推荐合作潜力最高的几位，说明推荐理由
+4. ID 范围 0–4056，超出范围直接说明无法查询。
 """,
     "allowed_tools": ["predict_collaboration", "search_author"],
 }
